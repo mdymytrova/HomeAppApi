@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HomeAppApi.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240308113736_InitialCreate")]
+    [Migration("20240312074243_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,36 +24,24 @@ namespace HomeAppApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("HomeAppApi.Models.Category", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Categories");
-                });
-
             modelBuilder.Entity("HomeAppApi.Models.City", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("CityId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CityId"));
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.Property<int>("StateId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CityId");
+
+                    b.HasIndex("StateId");
 
                     b.ToTable("Cities");
                 });
@@ -79,6 +67,9 @@ namespace HomeAppApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
                     b.Property<int>("StateId")
                         .HasColumnType("int");
 
@@ -89,48 +80,20 @@ namespace HomeAppApi.Migrations
 
                     b.HasIndex("CityId");
 
+                    b.HasIndex("OwnerId");
+
                     b.HasIndex("StateId");
 
                     b.ToTable("Houses");
                 });
 
-            modelBuilder.Entity("HomeAppApi.Models.HouseCategory", b =>
-                {
-                    b.Property<int>("HouseId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.HasKey("HouseId", "CategoryId");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("HouseCategories");
-                });
-
-            modelBuilder.Entity("HomeAppApi.Models.HouseOwner", b =>
-                {
-                    b.Property<int>("HouseId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OwnerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("HouseId", "OwnerId");
-
-                    b.HasIndex("OwnerId");
-
-                    b.ToTable("HouseOwners");
-                });
-
             modelBuilder.Entity("HomeAppApi.Models.Owner", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("OwnerId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OwnerId"));
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -144,26 +107,49 @@ namespace HomeAppApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.HasKey("OwnerId");
 
                     b.ToTable("Owners");
                 });
 
             modelBuilder.Entity("HomeAppApi.Models.State", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("StateId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StateId"));
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.HasKey("StateId");
 
                     b.ToTable("States");
+
+                    b.HasData(
+                        new
+                        {
+                            StateId = 1,
+                            Name = "Illinois"
+                        },
+                        new
+                        {
+                            StateId = 2,
+                            Name = "California"
+                        });
+                });
+
+            modelBuilder.Entity("HomeAppApi.Models.City", b =>
+                {
+                    b.HasOne("HomeAppApi.Models.State", "State")
+                        .WithMany("Cities")
+                        .HasForeignKey("StateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("State");
                 });
 
             modelBuilder.Entity("HomeAppApi.Models.House", b =>
@@ -171,61 +157,26 @@ namespace HomeAppApi.Migrations
                     b.HasOne("HomeAppApi.Models.City", "City")
                         .WithMany("Houses")
                         .HasForeignKey("CityId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HomeAppApi.Models.Owner", "Owner")
+                        .WithMany("Houses")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("HomeAppApi.Models.State", "State")
                         .WithMany("Houses")
                         .HasForeignKey("StateId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("City");
 
-                    b.Navigation("State");
-                });
-
-            modelBuilder.Entity("HomeAppApi.Models.HouseCategory", b =>
-                {
-                    b.HasOne("HomeAppApi.Models.Category", "Category")
-                        .WithMany("HouseCategories")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HomeAppApi.Models.House", "House")
-                        .WithMany("HouseCategories")
-                        .HasForeignKey("HouseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-
-                    b.Navigation("House");
-                });
-
-            modelBuilder.Entity("HomeAppApi.Models.HouseOwner", b =>
-                {
-                    b.HasOne("HomeAppApi.Models.House", "House")
-                        .WithMany("HouseOwners")
-                        .HasForeignKey("HouseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HomeAppApi.Models.Owner", "Owner")
-                        .WithMany("HouseOwners")
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("House");
-
                     b.Navigation("Owner");
-                });
 
-            modelBuilder.Entity("HomeAppApi.Models.Category", b =>
-                {
-                    b.Navigation("HouseCategories");
+                    b.Navigation("State");
                 });
 
             modelBuilder.Entity("HomeAppApi.Models.City", b =>
@@ -233,20 +184,15 @@ namespace HomeAppApi.Migrations
                     b.Navigation("Houses");
                 });
 
-            modelBuilder.Entity("HomeAppApi.Models.House", b =>
-                {
-                    b.Navigation("HouseCategories");
-
-                    b.Navigation("HouseOwners");
-                });
-
             modelBuilder.Entity("HomeAppApi.Models.Owner", b =>
                 {
-                    b.Navigation("HouseOwners");
+                    b.Navigation("Houses");
                 });
 
             modelBuilder.Entity("HomeAppApi.Models.State", b =>
                 {
+                    b.Navigation("Cities");
+
                     b.Navigation("Houses");
                 });
 #pragma warning restore 612, 618
