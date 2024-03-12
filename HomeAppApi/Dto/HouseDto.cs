@@ -1,6 +1,6 @@
-﻿namespace HomeAppApi.Models
+﻿namespace HomeAppApi.Dto
 {
-    public class House
+    public class HouseDto
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -9,10 +9,9 @@
         public bool Laundry { get; set; }
         public string PhotoUrl { get; set; }
         public int CityId { get; set; }
-        public City City { get; set; }
+        public string CityName { get; set; } = string.Empty;
         public int StateId { get; set; }
-        public State State { get; set; }
+        public string StateName { get; set; } = string.Empty;
         public int OwnerId { get; set; }
-        public Owner Owner { get; set; }
     }
 }

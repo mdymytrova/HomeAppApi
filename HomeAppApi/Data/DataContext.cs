@@ -8,40 +8,44 @@ namespace HomeAppApi.Data
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
         public DbSet<House> Houses { get; set; }
-        public DbSet<Category> Categories { get; set; }
         public DbSet<Owner> Owners { get; set; }
         public DbSet<City> Cities { get; set; }
         public DbSet<State> States { get; set; }
-        public DbSet<HouseOwner> HouseOwners { get; set; }
-        public DbSet<HouseCategory> HouseCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<HouseCategory>()
-                .HasKey(hc => new { hc.HouseId, hc.CategoryId });
+            modelBuilder.Entity<State>()
+                .HasMany<City>(s => s.Cities)
+                .WithOne(c => c.State)
+                .HasForeignKey(c => c.StateId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<HouseCategory>()
-                .HasOne(h => h.House)
-                .WithMany(hc => hc.HouseCategories)
-                .HasForeignKey(h => h.HouseId);
+            modelBuilder.Entity<State>()
+                .HasMany<House>(s => s.Houses)
+                .WithOne(h => h.State)
+                .HasForeignKey(h => h.StateId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<HouseCategory>()
-                .HasOne(h => h.Category)
-                .WithMany(hc => hc.HouseCategories)
-                .HasForeignKey(c => c.CategoryId);
+            modelBuilder.Entity<City>()
+                .HasMany<House>(c => c.Houses)
+                .WithOne(h => h.City)
+                .HasForeignKey(h => h.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<HouseOwner>()
-                .HasKey(ho => new { ho.HouseId, ho.OwnerId });
 
-            modelBuilder.Entity<HouseOwner>()
-                .HasOne(h => h.House)
-                .WithMany(ho => ho.HouseOwners)
-                .HasForeignKey(h => h.HouseId);
+            modelBuilder.Entity<Owner>()
+                .HasMany<House>(o => o.Houses)
+                .WithOne(h => h.Owner)
+                .HasForeignKey(h => h.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<HouseOwner>()
-                .HasOne(h => h.Owner)
-                .WithMany(ho => ho.HouseOwners)
-                .HasForeignKey(o => o.OwnerId);
+            modelBuilder.Entity<State>()
+                .HasData(
+                    new State { StateId = 1, Name = "Illinois" },
+                    new State { StateId = 2, Name = "California" }
+                );
+
+
         }
     }
 }
