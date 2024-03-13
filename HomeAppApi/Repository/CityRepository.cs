@@ -30,7 +30,7 @@ namespace HomeAppApi.Repository
         public City GetCity(int cityId)
         {
             return _context.Cities
-                .Where(c => c.CityId == cityId).Include(c => c.State).FirstOrDefault();
+                .Where(c => c.CityId == cityId).Include(c => c.State).Include(c => c.Houses).FirstOrDefault();
         }
 
         public ICollection<City> GetCitiesByState(int stateId)

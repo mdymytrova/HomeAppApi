@@ -118,7 +118,7 @@ namespace HomeAppApi.Controllers
 
             if (house != null)
             {
-                ModelState.AddModelError("", "House already exists");
+                ModelState.AddModelError("exist", "House already exists");
                 return StatusCode(422, ModelState);
             }
 
@@ -143,13 +143,17 @@ namespace HomeAppApi.Controllers
             houseMap.City = _cityRepository.GetCity(cityId);
             houseMap.Owner = _ownerRepository.GetOwner(houseCreate.OwnerId);
 
-            if (!Convert.ToBoolean(_houseRepository.CreateHouse(houseMap)))
+            try
             {
-                ModelState.AddModelError("", "Cannot create house");
+                _houseRepository.CreateHouse(houseMap);
+                return Ok("Successfully created");
+            } catch (Exception e)
+            {
+                ModelState.AddModelError("create", "Cannot create house");
                 return StatusCode(500, ModelState);
             }
 
-            return Ok("Successfully created");
+            
         }
     }
 }
